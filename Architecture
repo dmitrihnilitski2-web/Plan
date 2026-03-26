@@ -1,4 +1,4 @@
-FBot_V_2.0/
+FBot_V_3.0/
 ├── .env                       # Секретні змінні середовища (Токени, DB_URL, ADMIN_ID). Не комітиться в Git.
 ├── alembic.ini                # Конфігурація інструменту міграцій Alembic.
 ├── requirements.txt           # Залежності проекту (FastAPI, SQLAlchemy, asyncpg, aiogram, тощо).
@@ -77,14 +77,20 @@ FBot_V_2.0/
     │   ├── variables.css      # Кольори, шрифти, базові розміри.
     │   ├── components.css     # Кнопки, картки, інпути (`.bento-card`, `.btn`).
     │   └── style.css          # Основний зібраний файл зі специфічними стилями.
-    ├── img/                   # Аватарки, локальні зображення.
+    ├── img/                   # Аватарки, картинки для віджетів (напр. body_measurements.jpeg, rank_medal.jpeg, ai_food.jpeg).
     └── js/                    # Розбитий JavaScript.
         ├── main.js            # Точка входу, ініціалізація Telegram WebApp, реєстрація слухачів.
-        ├── api.js             # Обгортка над `window.fetch`, автоматичне додавання `X-Telegram-Init-Data`.
+        ├── api.js             # Обгортка над `window.fetch`, додавання `X-Telegram-Init-Data`.
         ├── store.js           # Глобальний стан (User Data, Settings) без прив'язки до `window`.
+        ├── anatomy/           # ПАПКА З МАПОЮ ТІЛА: Інтерактивна мапа тіла (SVG логіка, вибір м'язів).
+        ├── animations.js      # Скрипти для UI анімацій карток та кнопок.
         ├── ui/                # Функції оновлення DOM.
         │   ├── render_profile.js
         │   ├── render_dashboard.js
         │   └── render_charts.js
+        ├── admin.js           # JS логіка для адмін-панелі.
+        ├── trainer.js         # JS логіка для панелі тренера.
+        ├── onboarding.js      # JS логіка для онбордінгу нових користувачів.
+        ├── stories.js         # JS логіка відображення "історій" (Stories).
+        ├── subscriptions.js   # JS логіка покупки тарифів / платіжки.
         └── locales/           # i18n словники локалізації.
-
