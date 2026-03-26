@@ -1,1 +1,90 @@
+FBot_V_2.0/
+├── .env                       # Секретні змінні середовища (Токени, DB_URL, ADMIN_ID). Не комітиться в Git.
+├── alembic.ini                # Конфігурація інструменту міграцій Alembic.
+├── requirements.txt           # Залежності проекту (FastAPI, SQLAlchemy, asyncpg, aiogram, тощо).
+│
+├── main.py                    # Головна точка входу. Тут ініціалізується FastAPI, підключаються роутери та запускається lifespan (підключення до БД).
+│
+├── alembic/                   # Директорія зберігання скриптів міграцій бази даних.
+│   └── versions/              # Згенеровані файли міграцій (напр. 123_create_users_table.py).
+│
+├── app/                       # Головна папка бекенду (Веб-додаток).
+│   ├── __init__.py
+│   ├── core/                  # Ядро додатку (Налаштування, безпека).
+│   │   ├── config.py          # Завантаження та валідація змінних з `.env` через pydantic-settings.
+│   │   ├── security.py        # Логіка хешування HMAC для перевірки `X-Telegram-Init-Data` та створення токенів.
+│   │   ├── dependencies.py    # FastAPI Depends (напр., `get_db_session`, `get_current_user`).
+│   │   └── exceptions.py      # Глобальні обробники помилок (Кастомні Exception).
+│   │
+│   ├── db/                    # Робота з базою даних (PostgreSQL).
+│   │   ├── session.py         # Створення асинхронного engine (`create_async_engine`) та фабрики сесій `async_sessionmaker`.
+│   │   ├── base.py            # Базовий клас моделі `DeclarativeBase` для SQLAlchemy.
+│   │   └── repositories/      # Патерн Repository: ізоляція SQL-запитів від бізнес-логіки.
+│   │       ├── user_repo.py      # Клас для роботи з таблицею `users` (створити, знайти, оновити профіль).
+│   │       ├── workout_repo.py   # Клас для роботи з таблицею `workout_logs` та `daily_checkins`.
+│   │       ├── nutrition_repo.py # Клас для `nutrition_logs` та `favorite_meals`.
+│   │       └── social_repo.py    # Клас для таблиць `friends`, `duels`, `social_events`.
+│   │
+│   ├── models/                # SQLAlchemy ORM Моделі (Опис структури таблиць в PostgreSQL).
+│   │   ├── user.py            # Модель `User` (поля: user_id, name, height, weight, ...).
+│   │   ├── workout.py         # Моделі `WorkoutLog`, `Checkin`, `ExerciseLibrary`.
+│   │   ├── nutrition.py       # Моделі `NutritionLog`, `WaterLog`.
+│   │   └── social.py          # Моделі `Duel`, `Friend`, `CoachComment`.
+│   │
+│   ├── schemas/               # Pydantic Моделі (Валідація вхідних/вихідних API запитів).
+│   │   ├── user_schema.py     # `UserCreateResponse`, `ProfileUpdateReq`.
+│   │   ├── workout_schema.py  # `LogSetRequest`, `CheckinRequest`.
+│   │   └── common_schema.py   # Спільні схеми (напр. `SuccessResponse`).
+│   │
+│   ├── services/              # Бізнес-логіка додатку, яка викликає AI та зберігає результати в DB.
+│   │   ├── ai_service.py      # Інтеграція з Gemini (генерація плану, рецептів, аналіз фото).
+│   │   ├── workout_service.py # Розрахунок макроциклів, створення планів.
+│   │   └── billing_service.py # Перевірка лімітів ШІ-звернень (Paywall) та управління підписками.
+│   │
+│   └── api/                   # API 로утери (Контролери). Тут лише прийом запиту та повернення відповіді.
+│       ├── users.py           # Роути `/api/profile`, `/api/user/{id}`.
+│       ├── workouts.py        # Роути `/api/generate_plan`, `/api/checkin`.
+│       ├── nutrition.py       # Роути `/api/log_food`, `/api/water`.
+│       ├── social.py          # Роути `/api/duels`, `/api/friends`.
+│       └── admin.py           # Роути `/api/admin/...`.
+│
+├── bot/                       # Telegram Бот (aiogram).
+│   ├── bot_instance.py        # Ініціалізація `bot` та `dp` (Dispatcher).
+│   ├── handlers/              # Обробники Telegram-повідомлень.
+│   │   ├── start_handler.py   # Команда `/start`, розбір deep links (`duel_`, `trainer_`).
+│   │   ├── ai_chat_handler.py # Робота з текстовими та голосовими запитами (ШІ-тренер).
+│   │   └── media_handler.py   # Аналіз фото їжі, аналіз відео-техніки.
+│   └── keyboards/             # Динамічні InlineKeyboard (кнопка відкриття WebApp тощо).
+│
+├── worker/                    # Фонові та періодичні задачі.
+│   ├── scheduler.py           # Налаштування `APScheduler` (чи Celery) для періодичних крон-задач.
+│   └── tasks/                 # Логіка фонових процесів.
+│       ├── notifications.py   # Відправка ранкових та вечірніх push-повідомлень у Telegram.
+│       └── duel_judges.py     # Перевірка завершення або скасування активних дуелей.
+│
+├── templates/                 # Jinja2 HTML Шаблони.
+│   ├── partials/              # Компоненти (вставки), на які розбитий старий index.html.
+│   │   ├── profile.html
+│   │   ├── dashboard.html
+│   │   ├── nutrition.html
+│   │   └── cycle.html
+│   ├── index.html             # Каркас SPA, який збирає всі `partials` разом `{% include '...' %}`.
+│   ├── trainer.html           # Панель тренера.
+│   └── admin.html             # Адмін-панель.
+│
+└── static/                    # Статичні файли (Фронтенд).
+    ├── css/
+    │   ├── variables.css      # Кольори, шрифти, базові розміри.
+    │   ├── components.css     # Кнопки, картки, інпути (`.bento-card`, `.btn`).
+    │   └── style.css          # Основний зібраний файл зі специфічними стилями.
+    ├── img/                   # Аватарки, локальні зображення.
+    └── js/                    # Розбитий JavaScript.
+        ├── main.js            # Точка входу, ініціалізація Telegram WebApp, реєстрація слухачів.
+        ├── api.js             # Обгортка над `window.fetch`, автоматичне додавання `X-Telegram-Init-Data`.
+        ├── store.js           # Глобальний стан (User Data, Settings) без прив'язки до `window`.
+        ├── ui/                # Функції оновлення DOM.
+        │   ├── render_profile.js
+        │   ├── render_dashboard.js
+        │   └── render_charts.js
+        └── locales/           # i18n словники локалізації.
 
